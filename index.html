@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment-with-locales.min.js"></script>
+
+
+<style>
+    :root{
+        --day_background_color: #F1F4F8;
+        --day_sub_background_color: #DBE1EA;
+        --day_main_color: #484848;
+        --day_sub_color: #707070;
+        --day_point_color: #8792A2;
+    }
+
+    .dark-mode{
+        --day_background_color: #363636;
+        --day_sub_background_color: #434343;
+        --day_main_color: #f3f3f3;
+        --day_sub_color: #848585;
+        --day_point_color: #C3C3C3;
+    }
+
+    *{
+      
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    }
+
+    body{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /*모바일버전에서 스크롤 안되게 설정*/
+    }
+
+    .con{
+        width: 100%;
+        height: 100vh;
+        background-color: var(--day_background_color);  
+        overflow: hidden;
+
+    }
+
+    #date{
+        color: var(--day_sub_color);
+    }
+
+    .navmenu{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 30px 20px 30px 20px;
+    }
+
+    #location{
+        color: var(--day_main_color);
+        font-weight: 700;
+    }
+
+    .time_info p{
+        color: var(--day_point_color);
+    }
+
+    .info{
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    #full_screen_icon{
+        font-size: 28px;
+    }
+
+    .plusbut{
+        color: var(--day_point_color);
+        transition: all 0.3s ease;
+    }
+
+    .plusbutrotated {
+        transform: rotate(45deg);
+    }
+
+    .mainbox{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-flow: column;
+        height: 405px;
+        
+    }
+
+    #sunshine_effect{
+        width: 100%;
+        position: absolute;
+        top: 98px;
+
+        animation: sunshineanim 5s infinite linear;
+        display: none;
+    }
+
+    @keyframes sunshineanim {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.6;
+    }
+    }
+
+    /* #rain_effect{
+        width: 100%;
+        position: absolute;
+        top: 98px;
+
+        animation: rainanim 3s infinite linear;
+        display: none;
+    } */
+
+    #now_temp{
+        color: var(--day_main_color);
+        font-size: 64px;
+    }
+
+    #now_weather{
+        color: var(--day_main_color);
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    #now_minmax{
+        color: var(--day_sub_color);
+        font-size: 16px;
+    }
+
+    #now_compare_temp{
+        color: var(--day_sub_color);
+        font-size: 16px;
+        font-weight: medium;
+    }
+
+    #now_icon{
+        animation: iconsize 10s infinite linear;
+    }
+
+    @keyframes iconsize {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+    }
+    
+    .modal{
+        background-color: var(--day_background_color);
+        width: 100%;
+        height: 916px;
+        border-radius: 24px 24px 0px 0px;
+        box-shadow: 0 -2px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
+
+        position: absolute;
+        top: 862px;  
+        
+        transition: all 0.3s ease;
+    }
+
+    .modal:active{
+        bottom: 0px;
+    }
+
+    .up_bar{
+        background-color: var(--day_point_color);
+        width: 96px;
+        height: 4px;
+        border-radius: 20px;
+        margin-top: 14px;
+    }
+
+    .time_weather_box{
+        width: 100%;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .time_info{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    #time_weather{
+        width: 100%;
+        height: 135px;
+        overflow-x: scroll;
+        padding: 23px 0px 0px 0px;
+        display: flex;
+        flex-flow: row;
+        gap: 12px;
+
+        overflow-y: hidden;
+    }
+
+    .time_weather_item:first-child{
+        background-color: var(--day_sub_background_color);
+    }
+
+    #time_weather::-webkit-scrollbar{
+        display:none;
+    }
+
+
+    .time_weather_item{
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        /* height: 96px; */
+        padding: 4px 6px;
+        border-radius: 4px;
+        /* background-color: var(--day_sub_background_color); */
+        /* border: 1px solid var(--day_sub_background_color); */
+    }
+
+    .time_weather_item h3{
+        font-size: 16px;
+        color: #848585;
+        font-weight: 400;
+    }
+
+    .time_weather_item p{
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--day_sub_color)
+    }
+
+    .location_modal{
+        width: 100%;
+        height: 100vh;
+        background-color: var(--day_background_color);
+        position: absolute;
+        z-index: 1000;
+        display: none;
+    }
+
+    .location_modal_con{
+        width: 100%;
+        padding: 20px;
+        background-color: var(--day_background_color);
+        display: flex;
+        flex-flow: row wrap;
+        align-items: flex-start;
+        justify-content: flex-start;
+        border-top: 1px solid var(--day_sub_background_color);
+        gap: 6px;
+    }
+
+    .location_box{
+        background-color: var(--day_sub_background_color);
+        color: var(--day_main_color);
+        width: 192px;
+        height: 192px;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .location_box_data{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .location_box_data p{
+        font-size: 20px;
+        font-weight: 400;
+    }
+
+    .location_box_data h1{
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .loc_icon{
+        width: 140px;
+        height: 140px;
+    }
+
+    .infocon{
+        width: 430px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .infocon_up{
+        width: 100%;
+        height: 136px;
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+    }
+
+    #infobox_1{
+        flex-grow: 3;
+        background-color: var(--day_sub_background_color);
+        height: 100%;
+        border-radius: 12px;
+    }
+
+    #infobox_2{
+        width: 100px;
+        background-color: var(--day_sub_background_color);
+        height: 100%;
+        border-radius: 12px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: flex-end;
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .infocon_down{
+        width: 100%;
+        height: 93px;
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+    }
+
+    .infocon_down2{
+        width: 100%;
+        height: 93px;
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+    }
+
+    #infobox_3{
+        flex-grow: 1;
+        width: 192.5px;
+        background-color: var(--day_sub_background_color);
+        height: 100%;
+        border-radius: 12px;
+        padding: 18px 32px;
+
+        display: flex;
+        align-items: center;
+        gap: 8px;  
+    }
+
+    #infobox_4{
+        flex-grow: 1;
+        width: 192.5px;
+        background-color: var(--day_sub_background_color);
+        height: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+
+        display: flex;
+        align-items: center;
+        gap: 16px;    
+    }
+
+    #infobox_5{
+        flex-grow: 1;
+        width: 192.5px;
+        background-color: var(--day_sub_background_color);
+        border-radius: 12px;
+
+    }
+
+    .day_weather{
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .day_weather_box{
+        width: 100%;
+        height: 64px;
+        background-color: var(--day_sub_background_color);
+        border-radius: 10px;
+        padding: 12px 32px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #day_weather_dddcon{
+        width: 80px;
+        font-size: 14px;
+    }
+
+    #day_weather_maxmin{
+        display: flex;
+        font-size: 24px;
+        gap: 10px;
+        width: 80px;
+        justify-content : flex-end;
+    }
+
+    #day_weather_ddd{
+        color: var(--day_main_color);
+        font-weight: 400;
+    }
+
+    #day_weather_max{
+        color: var(--day_main_color);
+    }
+
+    #day_weather_min{
+        color: var(--day_point_color);
+    }
+
+    #yoil{
+        color: var(--day_sub_color);
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    #info_winds{
+        color: var(--day_point_color);
+        font-size: 48px;
+    }
+
+    #info_pollutions{
+        width: 72px;
+        color: var(--day_point_color);
+        font-size: 18px;    
+    }
+
+    .infobox_text p{
+        font-size: 14px;
+        color: var(--day_point_color);
+    }
+
+    #info_wind{
+        display: flex;
+        align-items: baseline;
+    }
+
+    @keyframes windMoveSlow {
+    0% {
+        transform: translateX(-4px);
+    }
+    30% {
+        transform: translateX(4px);
+    }
+    100% {
+        transform: translateX(-4px); 
+    }
+    }
+
+    @keyframes windMoveNormal {
+    0% {
+        transform: translateX(-8px);
+    }
+    30% {
+        transform: translateX(8px);
+    }
+    100% {
+        transform: translateX(-8px);
+    }
+    }
+
+    @keyframes windMoveFast {
+    0% {
+        transform: translateX(-10px);
+    }
+    30% {
+        transform: translateX(10px);
+    }
+    100% {
+        transform: translateX(-10px);
+    }
+    }
+
+#windimg {
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-out;
+    width: 100px;
+    height: 60px;
+}
+
+#info_wind{
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in;
+}
+
+#pollution_img{
+    width: 56px;
+}
+
+.infocon2{
+    width: 100%;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+}
+
+#now_compare_temp{
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#info_humidity{
+    color: var(--day_point_color);
+    font-size: 36px;
+    font-weight: bold;
+}
+
+#infobox_2 p{
+    color: var(--day_point_color);
+}
+
+#infobox_water {
+    width: 100%;
+    height: 0;
+    background-color: rgba(75, 192, 192, 0.5);
+    transition: height 0.5s ease-out; 
+    transition-delay: 0.5s;
+    border-radius: 8px;
+}
+
+.modalopen {
+    transform: translateY(-516px);
+}
+
+#infobox_1{
+    padding: 16px;
+}
+
+#infobox_1 h1{
+    font-size: 18px;
+    color: var(--day_main_color);
+    margin-bottom: 8px;
+}
+
+#infobox_1 p{
+    font-size: 16px;
+    color: var(--day_point_color);
+}
+
+</style>
+
+</head>
+<body>
+<div class="con">
+
+    <div class="navmenu">
+        <div class="info">
+                <p id="location"></p>
+                <p id="date"></p>
+            </div>
+
+
+        <div class="plusbut"><i id="full_screen_icon" class="material-icons">add</i></div>
+    </div>
+
+    <div class="location_modal">
+        <div class="location_modal_con">
+
+            <div class="location_box" id="loc1">
+                <div class="location_box_data" id="loc_dat1"></div>
+                <img class="loc_icon" id="loc_icon1">
+            </div>
+
+            <div class="location_box" id="loc2">
+                <div class="location_box_data" id="loc_dat2"></div>
+                <img class="loc_icon" id="loc_icon2">
+            </div>
+
+            <div class="location_box" id="loc3">
+                <div class="location_box_data" id="loc_dat3"></div>
+                <img class="loc_icon" id="loc_icon3">
+            </div>
+
+            <div class="location_box" id="loc4">
+                <div class="location_box_data" id="loc_dat4"></div>
+                <img class="loc_icon" id="loc_icon4">
+            </div>
+
+            <div class="location_box" id="loc5">
+                <div class="location_box_data" id="loc_dat5"></div>
+                <img class="loc_icon" id="loc_icon5">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mainbox">
+        <img id="now_icon">
+        <h1 id="now_temp"></h1>
+        <p id="now_weather"></p>
+        <p id="now_minmax"></p>
+        <p id="now_compare_temp"></p>
+        <img id="sunshine_effect" src="/image/sunhine.png">
+    </div>
+
+    <div class="infocon2">
+
+    <div class="infocon">
+        <div class="infocon_up">    
+            <div class="infobox" id="infobox_1">
+                <h1>오늘의 날씨 조언</h1>
+                <p class="tempTip"></p>
+                <p class="airpollutionTip"></p>
+                <p class="RainTip"></p>
+            </div>
+            <div class="infobox" id="infobox_2">
+                <p>습도</p>
+                <div id="info_humidity"></div>
+                <div id="infobox_water"></div>
+            </div>
+        </div>
+    
+        <div class="infocon_down">    
+            <div class="infobox" id="infobox_3">
+                <div class="infobox_text">
+                    <p>대기상태</p>
+                    <div id="info_pollution"></div>
+                </div>          
+                <img id="pollution_img" src="/image/verygood_n.png">
+            </div>
+            <div class="infobox" id="infobox_4">
+                <img id="windimg" src="image/Wind.png">
+                <div class="infobox_text">
+                    <p>풍속</p>
+                    <div id="info_wind"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="infocon_down2">    
+            <div class="infobox" id="infobox_5"></div>
+        </div>
+        
+    </div>
+
+    </div>
+    
+    <div class="modal">
+        <div class="up_bar"></div>
+
+        <div class="time_weather_box">
+            <div class="time_info">
+                <p>Today</p>
+                <p id="date">11/05</p>
+            </div>
+            <div id="time_weather"></div>
+        </div>
+
+        <div class="day_weather">
+            <div class="day_weather_box" id="day1"></div>
+            <div class="day_weather_box" id="day2"></div>
+            <div class="day_weather_box" id="day3"></div>
+            <div class="day_weather_box" id="day4"></div>
+            <div class="day_weather_box" id="day5"></div>
+        </div>
+
+    </div>
+</div>
+</body>
+
+<script>
+   $(function() {
+    let lat = "37.37";
+    let lon = "126.80";
+
+    $('.modal').click(function() {
+        $(this).toggleClass('modalopen');
+    });
+
+    $('.plusbut').click(function () {
+        $(this).toggleClass('plusbutrotated');
+        $('.location_modal').slideToggle('fast');
+    });  
+
+    $('.location_box').click(function () {
+        $('.location_modal').slideToggle('fast');
+    });
+
+    function updateWeatherData() {
+        let url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445`;
+        let urlF = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445`;
+        let urlA = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=92b4cc16c2952bbc856907a3d2ae1445`;
+
+        const KoreanPatch = {
+            "Mon": "월요일",
+            "Tue": "화요일",
+            "Wed": "수요일",
+            "Thu": "목요일",
+            "Fri": "금요일",
+            "Sat": "토요일",
+            "Sun": "일요일"
+        };
+
+$.getJSON(url, function(data) {
+    console.log(data);
+    let city = data.name;
+    let weather = data.weather[0].main;
+    let temp = data.main.temp;
+    let temp_max = data.main.temp_max;
+    let temp_min = data.main.temp_min;
+    let temp_feel = data.main.feels_like;
+    let dt = data.dt;
+    let ndtt = moment(dt * 1000).format('MM/DD ddd , Ahh:mm');
+    let humidity = data.main.humidity;
+
+    let sunrise = data.sys.sunrise * 1000;
+    let sunset = data.sys.sunset * 1000;
+
+    let icon = data.weather[0].icon;
+    let iconURL = "./image/" + icon + ".png";
+    $('#now_icon').attr('src', iconURL);
+
+    $('#date').text(ndtt);
+    $('#location').text(city);
+    $('#now_weather').text(weather);
+    $('#now_temp').text(parseInt(temp) + "°");
+    $('#now_minmax').text("최고 " + parseInt(temp_max) + "°" + ' / ' + "최저 " + parseInt(temp_min) + "°");
+    $('#info_humidity').text(humidity + "% ");
+
+    $('#infobox_water').css('height', humidity/2 + '% ');
+
+    $('#info_wind').empty();
+    let infowind = $('#info_wind');
+    let wind = data.wind.speed;
+    infowind.append('<h1 id=info_winds>' + parseInt(wind) + '</h1>' + '<p>' + "m/s" + '</p>');
+
+    let feeltemp = $('#now_compare_temp');
+    feeltemp.text('현재 체감온도는 ' + temp_feel + "° 에요.");  
+
+    if (wind < 3) {
+        $('#windimg, #info_wind').css('animation-name', 'windMoveSlow');
+    } else if (wind < 7) {
+        $('#windimg, #info_wind').css('animation-name', 'windMoveNormal');
+    } else {
+        $('#windimg, #info_wind').css('animation-name', 'windMoveFast');
+    }
+
+    let currentTime = new Date().getTime();
+    if (currentTime > sunrise && currentTime < sunset) {
+        $('body').removeClass('dark-mode');
+    } else {
+        $('body').addClass('dark-mode');
+    }
+
+    if (weather == 'Clear') {
+        $('#sunshine_effect').show();
+    }else{
+        $('#sunshine_effect').hide();
+    }
+
+    if (weather === 'Rain' || weather === 'Drizzle' || weather === 'Thunderstorm') {
+    $('.mainbox').css('background-image', 'url("./image/Raineffect.png")').css('background-size', 'cover');
+} else if (weather === 'Clouds') {
+    $('.mainbox').css('background-image', 'url("./image/CloudEffects.png")').css('background-size', 'cover');
+} else {
+    $('.mainbox').css('background-image', '');
+}
+
+if (temp >= 30) {
+    $('.tempTip').text('날씨가 매우 더워요. 가능한 한 그늘에서 시간을 보내세요.');
+} else if (temp >= 20 && temp < 30) {
+    $('.tempTip').text('날씨가 따뜻해요. 야외활동을 하기 좋은 날씨에요.');
+} else if (temp >= 10 && temp < 20) {
+    $('.tempTip').text('선선하나 약간 쌀쌀할 수 있어요. 겉옷을 챙겨 외출하세요.');
+} else if (temp >= 0 && temp < 10) {
+    $('.tempTip').text('외출 시 따뜻한 옷을 입고 외출하세요');
+} else {
+    $('.tempTip').text('날씨가 매우 추워요. 두꺼운 옷등 보온이 잘 되는 옷을 입고 외출하세요.');
+}
+
+if (weather === 'Rain' || weather === 'Drizzle') {
+    $('.RainTip').text('비가오네요. 우산 챙기세요.');
+} else {
+    $('.RainTip').text('');
+}
+});
+
+        $.getJSON(urlF, function(data) {
+    console.log(data);
+
+    $('#time_weather').empty();
+
+    for (let i = 0; i < 40; i++) {
+        let weather = data.list[i].weather[0].main;
+        let temp = data.list[i].main.temp;
+        let dt = data.list[i].dt;
+        let icon = data.list[i].weather[0].icon;
+        let iconURL = "./image/" + icon + ".png";
+
+        let timeweatheritem = $('<div class="time_weather_item"></div>');
+        let dtt = moment(dt * 1000).format('hh A');
+
+        timeweatheritem.append('<h3 class="time">' + dtt + '</h3>');
+        timeweatheritem.append('<img class="weather-icon" src="' + iconURL + '" alt="Weather Icon" width="60" height="60">');
+        timeweatheritem.append('<p class="temperature">' + parseInt(temp) + "°" + '</p>');
+
+        $('#time_weather').append(timeweatheritem);
+    }
+
+    // 일별 날씨 데이터 초기화
+    $('.day_weather_box').empty();
+
+    let forecastdata = data.list;
+    let dailyData = {};
+
+    // 데이터 반복하여 날짜별로 그룹화
+    forecastdata.forEach(function(item) {
+        let dateStr = moment(item.dt * 1000).format('YYYY-MM-DD');
+        let icon = item.weather[0].icon;
+
+        if (!dailyData[dateStr]) {
+            dailyData[dateStr] = {
+                temps: [],
+                date: dateStr,
+                icons: []
+            };
+        }
+
+        dailyData[dateStr].temps.push(item.main.temp);
+        dailyData[dateStr].icons.push(icon);
+    });
+
+    // 날짜별 데이터 객체를 배열로 변환하고 앞의 5일만 slice로 가져옴
+    let dailyDataArray = Object.values(dailyData).slice(0, 5);
+
+    dailyDataArray.forEach(function(dayData, index) {
+        // 최고 및 최저 기온 찾기
+        let maxTemp = Math.max(...dayData.temps);
+        let minTemp = Math.min(...dayData.temps);
+        let dayOfWeek = moment(dayData.date).format('ddd'); // 요일 형식
+
+        const dayOfWeekKor = KoreanPatch[dayOfWeek]; // 한국어로 변경
+
+        // 가장 많이 등장한 날씨 아이콘 찾기
+        let iconFrequency = {};
+        dayData.icons.forEach(function(icon) {
+            if (!iconFrequency[icon]) {
+                iconFrequency[icon] = 0;
+            }
+            iconFrequency[icon]++;
+        });
+
+        // 빈도수가 가장 높은 아이콘을 찾기
+        let mostFrequentIcon = Object.keys(iconFrequency).reduce((a, b) => iconFrequency[a] > iconFrequency[b] ? a : b);
+        let mostFrequentIconURL = `./image/${mostFrequentIcon}.png`;
+
+        // 일별 날씨 정보를 해당 .day_weather_box 요소에 추가
+        let dayWeatherBox = $(`#day${index + 1}`);
+        dayWeatherBox.append(`<div id="day_weather_dddcon"><h3 id="day_weather_ddd">${dayOfWeekKor}</h3></div>`);
+        dayWeatherBox.append(`<img class="weather-icon" src="${mostFrequentIconURL}" alt="Weather Icon" width="40" height="40">`);
+        dayWeatherBox.append(`<div id="day_weather_maxmin"><p id="day_weather_max">${parseInt(maxTemp)}°</p>` + `<p id="day_weather_min">${parseInt(minTemp)}°</p></div>`);
+    });
+
+    let forecastGraph = data.list.slice(0, 4);
+    let labels = [];
+    let temps = [];
+
+    forecastGraph.forEach(function(item) {
+        let time = moment(item.dt * 1000).format('HH:mm');
+        labels.push(time);
+        temps.push(item.main.temp);
+    });
+
+    var myChart = echarts.init(document.getElementById('infobox_5'));
+
+    var option = {
+        title: {
+            left: 'center',
+            textStyle: {
+                color: '#333',
+                fontSize: 16,
+                fontWeight: 'bold'
+            }
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+        xAxis: {
+            type: 'category',
+            data: labels,
+            axisLabel: {
+                color: '#666'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'rgba(200, 200, 200, 0.2)'
+                }
+            },
+            axisTick: {
+                alignWithLabel: true
+            }
+        },
+        yAxis: {
+            type: 'value',
+            axisLabel: {
+                color: '#666'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'rgba(200, 200, 200, 0.2)'
+                }
+            },
+            splitLine: {
+                lineStyle: {
+                    color: 'rgba(200, 200, 200, 0.2)'
+                }
+            }
+        },
+        series: [{
+            data: temps,
+            type: 'line',
+            smooth: true,
+            lineStyle: {
+                color: 'rgba(75, 192, 192, 1)',
+                width: 2
+            },
+            itemStyle: {
+                color: 'rgba(75, 192, 192, 1)'
+            },
+            areaStyle: {
+                color: 'rgba(75, 192, 192, 0.2)'
+            }
+        }]
+    };
+    myChart.setOption(option);
+});
+
+
+        $.getJSON(urlA, function(data) {
+            console.log(data);
+            let pollution = data.list[0].main.aqi;
+            let pollutions = '';
+
+            if (pollution === 1) {
+                pollutions = "매우좋음";
+                $('#pollution_img').attr('src', './image/verygood_n.png');
+                $('.airpollutionTip').text('오늘은 나가기 좋은 대기상태에요😊')
+            } else if (pollution === 2) {
+                pollutions = "좋음";
+                $('#pollution_img').attr('src', './image/good_n.png');
+                $('.airpollutionTip').text('오늘은 나가기 좋은 대기상태에요😊')
+            } else if (pollution === 3) {
+                pollutions = "보통";
+                $('#pollution_img').attr('src', './image/normal_n.png');
+                $('.airpollutionTip').text('오늘은 나가기 애매한 대기상태에요😒')
+            } else if (pollution === 4) {
+                pollutions = "나쁨";
+                $('#pollution_img').attr('src', './image/bad_n.png');
+                $('.airpollutionTip').text('마스크를 꼭 쓰고 외출하세요😕')
+            } else if (pollution === 5) {
+                pollutions = "매우나쁨";
+                $('#pollution_img').attr('src', './image/verybad_n.png');
+                $('.airpollutionTip').text('마스크를 꼭 쓰고 외출하세요😕')
+            }
+
+            let infopollution = $('#info_pollution');
+            infopollution.empty();
+            infopollution.append('<h1 id="info_pollutions">' + pollutions + '</h1>');
+        });
+    }
+    updateWeatherData();
+
+    $('#loc1').click(function() {
+        lat = "37.37";
+        lon = "126.80";
+        updateWeatherData();
+    });
+
+    $('#loc2').click(function() {
+        lat = "37.56"; 
+        lon = "126.26";
+        updateWeatherData();
+    });
+
+    $('#loc3').click(function() {
+        lat = "36.3504";
+        lon = "127.3845";
+        updateWeatherData();
+    });
+
+    $('#loc4').click(function() {
+        lat = "-33.8674";
+        lon = "151.2069";
+        updateWeatherData();
+    });
+
+    $('#loc5').click(function() {
+        lat = "40.7128"; 
+        lon = "-74.0060";
+        updateWeatherData();
+    });
+
+});
+
+
+    let url1 = 'https://api.openweathermap.org/data/2.5/weather?lat=37.37&lon=126.80&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445';
+
+    $.getJSON(url1, function(data){
+        console.log(data);
+        let city1 = data.name; 
+        let temp1 = data.main.temp;
+
+        let icon1 = data.weather[0].icon;
+        let iconURL1 = "./image/" + icon1 + ".png";
+
+        $('#loc_icon1').attr('src', iconURL1);
+        let locationbox1 = $('#loc_dat1');
+        locationbox1.append('<h1>' + city1 + '</h1>');
+        locationbox1.append('<h2>' + parseInt(temp1) + "°" + '</h2>')
+    })
+
+let url2 = 'https://api.openweathermap.org/data/2.5/weather?lat=37.56&lon=126.26&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445';
+
+$.getJSON(url2, function(data){
+    console.log(data);
+    let city2 = data.name; 
+    let temp2 = data.main.temp;
+
+    let icon2 = data.weather[0].icon;
+    let iconURL2 = "./image/" + icon2 + ".png";
+
+    $('#loc_icon2').attr('src', iconURL2);
+    let locationbox2 = $('#loc_dat2');
+    locationbox2.append('<h1>' + city2 + '</h1>');
+    locationbox2.append('<h2>' + parseInt(temp2) + "°" + '</h2>')
+
+})
+
+let url3 = 'https://api.openweathermap.org/data/2.5/weather?lat=36.3504&lon=127.3845&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445';
+
+$.getJSON(url3, function(data){
+    console.log(data);
+    let city3 = data.name; 
+    let temp3 = data.main.temp;
+
+    let icon3 = data.weather[0].icon;
+    let iconURL3 = "./image/" + icon3 + ".png";
+
+    $('#loc_icon3').attr('src', iconURL3);
+    let locationbox3 = $('#loc_dat3');
+    locationbox3.append('<h1>' + city3 + '</h1>');
+    locationbox3.append('<h2>' + parseInt(temp3) + "°" + '</h2>')
+
+});
+
+let url4 = 'https://api.openweathermap.org/data/2.5/weather?lat=-33.8674&lon=151.2069&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445';
+
+$.getJSON(url4, function(data){
+    let city4 = data.name; 
+    let temp4 = data.main.temp;
+
+    let icon4 = data.weather[0].icon;
+    let iconURL4 = "./image/" + icon4 + ".png";
+
+    $('#loc_icon4').attr('src', iconURL4);
+    let locationbox4 = $('#loc_dat4');
+    locationbox4.append('<h1>' + city4 + '</h1>');
+    locationbox4.append('<h2>' + parseInt(temp4) + "°" + '</h2>')
+
+})
+
+
+let url5 = 'https://api.openweathermap.org/data/2.5/weather?lat=40.7128&lon=-74.0060&units=metric&appid=92b4cc16c2952bbc856907a3d2ae1445';
+
+$.getJSON(url5, function(data){
+    let city5 = data.name; 
+    let temp5 = data.main.temp;
+
+    let icon5 = data.weather[0].icon;
+    let iconURL5 = "./image/" + icon5 + ".png";
+
+    $('#loc_icon5').attr('src', iconURL5);
+    let locationbox5 = $('#loc_dat5');
+    locationbox5.append('<h1>' + city5 + '</h1>');
+    locationbox5.append('<h2>' + parseInt(temp5) + "°" + '</h2>')
+
+})
+</script>
+
+</html>
